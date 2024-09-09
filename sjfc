@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Processes {
+    char name[50];
+    int CPU;
+    int arrival;
+    int complete;
+    int wait;
+    int isComplete;
+};
+
+void sortProcessesByArrival(struct Processes process[], int n) {
+    struct Processes temp;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (process[j].arrival > process[j + 1].arrival) {
+                temp = process[j];
+                process[j] = process[j + 1];
+                process[j + 1] = temp;
+            }
+        }
+    }
+}
+
+int findNextProcess(struct Processes process[], int n, int currentTime) {
+    int index = -1;
+    int shortestCPU = 9999;
+    for (int i = 0; i < n; i++) {
+        if (process[i].arrival <= currentTime && process[i].isComplete == 0) {
+            if (process[i].CPU < shortestCPU) {
+                shortestCPU = process[i].CPU;
+                index = i;
+            }
+        }
+    }
+    return index;
+}
+
+void main() {
+    int n,waitSum=0;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    if (n > 10) {
+        printf("Error: Number of processes exceeds array size.\n");
+        return;
+    }
+
+    struct Processes process[10];
+    
+    for (int i = 0; i < n; i++) {
+        printf("Enter the name of process: ");
+        scanf("%s", process[i].name);
+
+        printf("Enter CPU burst time of process: ");
+        scanf("%d", &process[i].CPU);
+
+        printf("Enter arrival time of process: ");
+        scanf("%d", &process[i].arrival);
+
+        process[i].isComplete = 0;
+    }
+
+    sortProcessesByArrival(process, n);
+
+    int currentTime = 0;
+    int completedProcesses = 0;
+
+    while (completedProcesses < n) {
+        int index = findNextProcess(process, n, currentTime);
+
+        if (index != -1) {
+            if (currentTime < process[index].arrival) {
+                currentTime = process[index].arrival; 
+            }
+
+            process[index].wait = currentTime - process[index].arrival;
+            currentTime += process[index].CPU;
+            process[index].complete = currentTime;
+            process[index].isComplete = 1;
+            completedProcesses++;
+            waitSum += process[index].wait;
+        } else {
+            currentTime++;
+        }
+    }
+
+    // Print the results
+    printf("\n%-10s %-10s %-10s %-10s %-10s\n", "Name", "CPU", "Arrival", "Complete", "Wait");
+    printf("---------------------------------------------------------------\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("%-10s %-10d %-10d %-10d %-10d\n", 
+               process[i].name, 
+               process[i].CPU, 
+               process[i].arrival, 
+               process[i].complete, 
+               process[i].wait);
+    }
+    printf("\n Average waiting time: %f",(float)waitSum/n);
+}
