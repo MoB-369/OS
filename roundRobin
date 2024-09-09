@@ -1,0 +1,87 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Processes {
+    char name[50];
+    int CPU;
+    int remainingCPU;
+    int arrival;
+    int complete;
+    int wait;
+    int turnaround;
+};
+
+
+void main() {
+    int n, timeQuantum;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+    
+    struct Processes process[10];
+    
+    for (int i = 0; i < n; i++) {
+        printf("Enter the name of process: ");
+        scanf("%s", process[i].name);
+        
+        printf("Enter CPU burst time of process: ");
+        scanf("%d", &process[i].CPU);
+        process[i].remainingCPU = process[i].CPU;
+        
+        printf("Enter arrival time of process: ");
+        scanf("%d", &process[i].arrival);
+    }
+    
+    printf("Enter time quantum: ");
+    scanf("%d", &timeQuantum);
+
+    int time = 0, done = 0;
+    int waitSum = 0, turnaroundSum = 0;
+while (done < n) {
+    int processRun = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (process[i].arrival <= time && process[i].remainingCPU > 0) {
+            int timeSlice = (process[i].remainingCPU > timeQuantum) ? timeQuantum : process[i].remainingCPU;
+            
+            time += timeSlice;
+            
+            process[i].remainingCPU -= timeSlice;
+            processRun = 1;
+        }
+
+            if (process[i].remainingCPU == 0) {
+                done++;
+                
+                process[i].complete = time;
+
+                process[i].turnaround = process[i].complete - process[i].arrival;
+
+                process[i].wait = process[i].turnaround - process[i].CPU;
+                
+                waitSum += process[i].wait;
+                turnaroundSum += process[i].turnaround;
+            }
+        }
+
+    if (!processRun) {
+        time++;
+    }
+}
+
+    printf("\n%-10s %-10s %-10s %-10s %-10s %-10s\n", "Name", "CPU", "Arrival", "Complete", "Wait", "Turnaround");
+    printf("----------------------------------------------------------------------\n");
+    
+    for (int i = 0; i < n; i++) {
+        printf("%-10s %-10d %-10d %-10d %-10d %-10d\n", 
+                process[i].name, 
+                process[i].CPU, 
+                process[i].arrival, 
+                process[i].complete, 
+                process[i].wait,
+                process[i].turnaround);
+    }
+    
+    printf("\nAverage Waiting Time: %.2f\n", (float)waitSum / n);
+    printf("Average Turnaround Time: %.2f\n", (float)turnaroundSum / n);
+}
